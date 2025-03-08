@@ -6,14 +6,21 @@ A [yazi](https://github.com/sxyazi/yazi) plugin to cd to the root dir of a git r
 
 Run one of the following commands.
 
+### [ya package manager](https://yazi-rs.github.io/docs/cli)
+
 ```sh
-# ya package manager
 ya pack -a ayvi-0001/git-cd-root-dir
+```
+  
+### Linux/Cygwin/MSYS2
 
-# Linux
+```sh
 git clone https://github.com/ayvi-0001/git-cd-root-dir.yazi.git ~/.config/yazi/plugins/git-cd-root-dir.yazi
+```
 
-# Windows
+### Windows
+
+```sh
 git clone https://github.com/ayvi-0001/git-cd-root-dir.yazi.git %AppData%\yazi\config\plugins\git-cd-root-dir.yazi
 ```
 
@@ -22,15 +29,17 @@ git clone https://github.com/ayvi-0001/git-cd-root-dir.yazi.git %AppData%\yazi\c
 Add the following keybind to your `keymap.toml`.
 
 ```toml
-# as an inline-table
 [manager]
 prepend_keymap = [
-  { on = ["g", "r"], run = "plugin git-cd-root-dir", desc = "cd to git repo root directory" }
+  { on = ["g", "r"], run = "plugin git-cd-root-dir", desc = "Goto git root directory" }
 ]
+```
 
-# or as an array of tables
+or as an array of tables
+
+```toml
 [[manager.prepend_keymap]]
 on = ["g", "r"]
 run = "plugin git-cd-root-dir"
-desc = "cd to git repo root directory"
+desc = "Goto git root directory"
 ```
