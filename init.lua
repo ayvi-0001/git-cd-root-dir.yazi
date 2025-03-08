@@ -1,10 +1,10 @@
-local F = {}
+local M = {}
 
 TIMEOUT_NOTIFY = 2.0
 
----@param str string
-local isempty = function(str)
-  return str == nil or str == ""
+---@param v string
+local isempty = function(v)
+  return v == nil or v == ""
 end
 
 ---@param url1 string|Url
@@ -31,9 +31,7 @@ local ya_notify = function(content, level)
   }
 end
 
--- local get_cwd = ya.sync(function() return tostring(cx.active.current.cwd) end)
-
-function F:entry(job)
+function M:entry(job)
   local cwd = select(1, fs.cwd())
 
   local output =
@@ -43,7 +41,7 @@ function F:entry(job)
 
   -- Check if we are already in the root dir.
   if _url_eq(cwd, result) then
-    ya_notify("Already in the root dir of this repo.")
+    ya_notify("Already in the root dir of this repo.", "info")
     return
   end
 
@@ -72,7 +70,7 @@ function F:entry(job)
     end
   end
 
-  ok, pcall_result = pcall(recurse_dir_search, latest_cwd)
+  local ok, pcall_result = pcall(recurse_dir_search, latest_cwd)
 
   if ok and pcall_result ~= nil then
     ya.manager_emit("cd", { pcall_result })
@@ -85,4 +83,4 @@ function F:entry(job)
   end
 end
 
-return F
+return M
