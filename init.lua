@@ -46,7 +46,7 @@ function M:entry(job)
   end
 
   -- Try to change dirs.
-  ya.manager_emit("cd", { result })
+  ya.mgr_emit("cd", { result })
 
   local latest_cwd = select(1, fs.cwd())
 
@@ -73,7 +73,7 @@ function M:entry(job)
   local ok, pcall_result = pcall(recurse_dir_search, latest_cwd)
 
   if ok and pcall_result ~= nil then
-    ya.manager_emit("cd", { pcall_result })
+    ya.mgr_emit("cd", { pcall_result })
     return
   elseif isempty(result) then
     -- Finally, confirm the initial result is empty,
