@@ -1,57 +1,81 @@
+---@diagnostic disable: undefined-global
+
+---@module 'ya', 'fs'
+---@diagnostic disable-next-line: unknown-cast-variable
+---@cast ya Ya
+---@diagnostic disable-next-line: unknown-cast-variable
+---@cast fs Fs
+
 local M = {}
 
+---@type number
 TIMEOUT_NOTIFY = 2.0
 
----@param v string
+---Check if var is none. Converted to string first.
+---@param v any
+---@returns boolean
 local isempty = function(v)
-  return v == nil or v == ""
+  local s = tostring(v)
+  return s == nil or s == ""
 end
 
----@param url1 string|Url
----@param url2 string|Url
--- Url: https://yazi-rs.github.io/docs/plugins/types#shared.url
+---@param url1 (Url|string)?
+---@param url2 (Url|string)?
 local _url_eq = function(url1, url2)
   if type(url1) == "string" then
-    url1 = Url(url1)
+    url1 = Url(url1) --[[@as Url]]
   end
   if type(url2) == "string" then
-    url2 = Url(url2)
+    url2 = Url(url2) --[[@as Url]]
   end
-  return (select(1, fs.unique_name(url2)) == fs.unique_name(url1))
+  return select(1, fs.unique_name(url2)) == select(1, fs.unique_name(url1))
 end
 
+---@enum LogLevel
+LOGLEVEL = {
+  info = "info",
+  warn = "warn",
+  error = "error",
+}
+
 ---@param content string
----@param level string = "info"
+---@param level LogLevel?
 local ya_notify = function(content, level)
   ya.notify {
     title = "git-cd-root-dir",
     content = content,
-    level = level or "info",
+    level = level or LOGLEVEL.info,
     timeout = TIMEOUT_NOTIFY,
   }
 end
 
-function M:entry(job)
-  local cwd = select(1, fs.cwd())
+---@async
+---@param job { args: string[]? }
+function M:entry(job) ---@diagnostic disable-line: unused-local
+  local cwd = fs.cwd()
 
-  local output =
-    select(1, Command("git"):args({ "rev-parse", "--show-toplevel" }):cwd(tostring(cwd)):output())
+  local cmd = Command "git" --[[@as Command]]
+  local output = cmd:args({ "rev-parse", "--show-toplevel" }):cwd(tostring(cwd)):output()
 
-  local result = output.stdout:match("^%s*(.-)%s*$"):gsub("[\n\r]+", " ")
+  if not output then
+    return
+  end
+
+  local result = output.stdout:match("^%s*(.-)%s*$"):gsub("[\n\r]+", " ") --[[@as string]]
 
   -- Check if we are already in the root dir.
   if _url_eq(cwd, result) then
-    ya_notify("Already in the root dir of this repo.", "info")
+    ya_notify("Already in the root dir of this repo.", LOGLEVEL.info)
     return
   end
 
   -- Try to change dirs.
   ya.mgr_emit("cd", { result })
 
-  local latest_cwd = select(1, fs.cwd())
+  local latest_cwd = fs.cwd()
 
-  -- We've changed directories, return.
   if not _url_eq(cwd, latest_cwd) then
+    -- We've changed directories, return.
     return
   end
 
@@ -60,6 +84,8 @@ function M:entry(job)
   -- rev-parse --show-toplevel will error if its not ran in a work tree.
 
   -- Check parent directories to see if we are in .git/
+  ---@param path Url
+  ---@return Url?
   local function recurse_dir_search(path)
     local parent = path.parent
     if path:ends_with ".git" then -- Found the .git dir.
@@ -75,12 +101,9 @@ function M:entry(job)
 
   if ok and pcall_result ~= nil then
     ya.mgr_emit("cd", { pcall_result })
-    return
   elseif isempty(result) then
-    -- Finally, confirm the initial result is empty,
-    -- We are not in a git repository.
-    ya_notify("Not in a git repository.", "error")
-    return
+    -- Finally, confirm the initial result is empty, we are not in a git repository.
+    ya_notify("Not in a git repository.", LOGLEVEL.error)
   end
 end
 
