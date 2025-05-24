@@ -80,24 +80,25 @@ function M:entry(job) ---@diagnostic disable-line: unused-local
   end
 
   -- Before confirming we're not in a repo,
-  -- check to see if we are in the .git dir, since the result of
+  -- check to see if we are in a .git dir, since the result of
   -- rev-parse --show-toplevel will error if its not ran in a work tree.
 
-  -- Check parent directories to see if we are in .git/
+  ---Search parent paths of a Url for a suffix.
   ---@param path Url
+  ---@param suffix string
   ---@return Url?
-  local function recurse_dir_search(path)
+  local function recurse_dir_search(path, suffix)
     local parent = path.parent
-    if path:ends_with ".git" then -- Found the .git dir.
+    if path:ends_with(suffix) then
       return parent
-    elseif parent then -- Keep checking.
-      return recurse_dir_search(parent)
+    elseif parent then
+      return recurse_dir_search(parent, suffix)
     else
       return nil
     end
   end
 
-  local ok, pcall_result = pcall(recurse_dir_search, latest_cwd)
+  local ok, pcall_result = pcall(recurse_dir_search, latest_cwd, ".git")
 
   if ok and pcall_result ~= nil then
     ya.mgr_emit("cd", { pcall_result })
