@@ -61,10 +61,11 @@ function M:entry(job)
 
   -- Check parent directories to see if we are in .git/
   local function recurse_dir_search(path)
+    local parent = path.parent
     if path:ends_with ".git" then -- Found the .git dir.
-      return path:parent()
-    elseif path:parent() ~= nil then -- Keep checking.
-      return recurse_dir_search(path:parent())
+      return parent
+    elseif parent then -- Keep checking.
+      return recurse_dir_search(parent)
     else
       return nil
     end
