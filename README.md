@@ -9,7 +9,7 @@ Run one of the following commands.
 ### [ya package manager](https://yazi-rs.github.io/docs/cli)
 
 ```sh
-ya pack -a ayvi-0001/git-cd-root-dir
+ya pkg add ayvi-0001/git-cd-root-dir
 ```
 
 ### Linux/WSL/MSYS2/Cygwin
@@ -26,16 +26,20 @@ git clone https://github.com/ayvi-0001/git-cd-root-dir.yazi.git %AppData%\yazi\c
 
 ## Usage
 
-Add one of the following keybinds to your `keymap.toml`.
+Add one of the following keybinds to your `keymap.toml`,
+
+as an inline table:
 
 ```toml
-# As an inline table:
 [manager]
 prepend_keymap = [
   { on = ["g", "r"], run = "plugin git-cd-root-dir", desc = "Goto git root directory" }
 ]
+```
 
-# or as an array of tables:
+or as an array of tables:
+
+```toml
 [[manager.prepend_keymap]]
 on = ["g", "r"]
 run = "plugin git-cd-root-dir"
