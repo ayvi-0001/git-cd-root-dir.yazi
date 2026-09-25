@@ -78,7 +78,7 @@ function M:entry(job) ---@diagnostic disable-line: unused-local
       -- Before confirming we're not in a repo,
       -- check to see if we are in a .git dir, since the result of
       -- rev-parse --show-toplevel will error if its not ran in a work tree.
-      local ok, pcall_result = pcall(url_recursive_search, Url(cwd), ".git")
+      local ok, pcall_result = pcall(url_recursive_search, cwd, ".git")
       if ok and pcall_result ~= nil then
         target_dir = Url(pcall_result)
       end
@@ -92,12 +92,14 @@ function M:entry(job) ---@diagnostic disable-line: unused-local
     return ya_notify("already in the top-level of the working tree", "info")
   end
 
-  -- Try to change dirs. Cloning target_dir since passing through ya.emit transfers ownership
-  ya.emit("cd", { Url(target_dir) })
+  -- Cloning target_dir since passing through ya.emit will transfer ownership
+  local target_dir_str = tostring(target_dir)
+  -- Try to change dirs.
+  ya.emit("cd", { target_dir })
 
   local latest_cwd = ya_unwrap(get_cwd(), "failed to get latest cwd", 1)
 
-  if cwd ~= latest_cwd and latest_cwd == target_dir then
+  if cwd ~= latest_cwd and latest_cwd == Url(target_dir_str) then
     -- We've successfully changed directories
     return
   end
@@ -106,7 +108,7 @@ function M:entry(job) ---@diagnostic disable-line: unused-local
   ya.err("git-cd-root-dir.yazi", msg, {
     cwd = tostring(cwd),
     latest_cwd = tostring(latest_cwd),
-    target_dir = tostring(target_dir),
+    target_dir = target_dir_str,
     stdout = stdout,
     stderr = stderr,
   })
